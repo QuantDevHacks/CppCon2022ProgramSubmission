@@ -13,13 +13,13 @@ import TermStructure;
 import Schedule;
 
 //	Schedule(const ChronoDate& val_date, const ChronoDate& first_reg_date, 
-//		const ChronoDate& last_date, int tenor);
+//		const ChronoDate& last_date, int frequency);
 
 export class Bond
 {
 public:
 	Bond(const ChronoDate& sett_date, const ChronoDate& first_cpn_date,
-		const ChronoDate& mat_date, int tenor, double coupon_rate, /*const DayCount& day_count,*/
+		const ChronoDate& mat_date, int frequency, double coupon_rate, /*const DayCount& day_count,*/
 		double face_value, TermStructure&& term_struct);
 
 	double operator()() const;		// Returns calculated price
@@ -33,7 +33,7 @@ public:
 
 private:
 	ChronoDate sett_date_, first_cpn_date_, mat_date_;		// Change to move/rvalue input later 
-	int tenor_;
+	int frequency_;
 	double coupon_rate_, face_value_; 
 //	const DayCount& day_count_;		// Change to unique_ptr later	(contained in TermStructure class)
 	TermStructure term_struct_;
@@ -50,11 +50,11 @@ private:
 };
 
 Bond::Bond(const ChronoDate& sett_date, const ChronoDate& first_cpn_date,
-	const ChronoDate& mat_date, int tenor, double coupon_rate, double face_value, /*const DayCount& day_count,*/
+	const ChronoDate& mat_date, int frequency, double coupon_rate, double face_value, /*const DayCount& day_count,*/
 	TermStructure&& term_struct):
 	sett_date_{ sett_date }, first_cpn_date_{ first_cpn_date }, mat_date_{ mat_date },
-	tenor_{ tenor }, coupon_rate_{ coupon_rate }, face_value_{ face_value }, /*day_count_{ day_count }, */
-	term_struct_{ std::move(term_struct) }, sched_{ sett_date, first_cpn_date, mat_date, tenor }
+	frequency_{ frequency }, coupon_rate_{ coupon_rate }, face_value_{ face_value }, /*day_count_{ day_count }, */
+	term_struct_{ std::move(term_struct) }, sched_{ sett_date, first_cpn_date, mat_date, frequency }
 {
 	calculate_price_();
 }
@@ -70,7 +70,7 @@ void Bond::calculate_price_()
 	retrieve_yield_();
 	calculate_disc_factors_();
 
-	double cpn_amount = (face_value_ * coupon_rate_ * tenor_) / 12.0;		// 12 months in year
+	double cpn_amount = (face_value_ * coupon_rate_ * frequency_) / 12.0;		// 12 months in year
 	double pv_cpn_pmts{ 0.0 };
 	for (double df : disc_fctrs_)
 	{
